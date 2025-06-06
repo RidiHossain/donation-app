@@ -6,10 +6,44 @@ import {
   InvoicesTable,
   LatestInvoiceRaw,
   Revenue,
+  DonorsTable,
 } from './definitions';
 import { formatCurrency } from './utils';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+
+export type DonorWithDuePayment = {
+  donor_id: string;
+  name: string;
+  phone: string;
+  address: string;
+  payment_date: string;
+  payment_amount: number;
+  status: string;
+};
+
+export async function fetchDonorsWithMostRecentDue() {
+  try {
+    const data = await sql<DonorWithDuePayment[]>`
+      SELECT d.id AS donor_id, d.name, d.phone, d.address,
+             p.payment_date, p.payment_amount, p.status
+      FROM donors d
+      JOIN LATERAL (
+        SELECT payment_date, payment_amount, status
+        FROM donor_payments
+        WHERE donor_id = d.id AND status = 'Due'
+        ORDER BY payment_date DESC
+        LIMIT 1
+      ) p ON true
+      ORDER BY p.payment_date DESC;
+    `;
+
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch donors with due payments.');
+  }
+}
 
 export async function fetchRevenue() {
   try {
@@ -86,6 +120,51 @@ export async function fetchCardData() {
 }
 
 const ITEMS_PER_PAGE = 6;
+
+export async function fetchFilteredDonors(
+  query: string,
+  currentPage: number,
+) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const donors = await sql<DonorsTable[]>`
+  SELECT d.id,
+         d.name,
+         d.phone,
+         d.address,
+         d.payment_plan,
+         p.payment_date,
+         p.payment_amount,
+         p.status
+  FROM donors d
+  JOIN donor_payments p ON d.id = p.donor_id
+  WHERE p.status = 'Due'
+    AND p.payment_date = (
+      SELECT MIN(payment_date)
+      FROM donor_payments
+      WHERE donor_id = d.id AND status = 'Due'
+    )
+    AND (
+      d.name ILIKE ${`%${query}%`} OR
+      d.phone ILIKE ${`%${query}%`} OR
+      d.address ILIKE ${`%${query}%`} OR
+      d.payment_plan::text ILIKE ${`%${query}%`} OR
+      p.payment_date::text ILIKE ${`%${query}%`} OR
+      p.payment_amount::text ILIKE ${`%${query}%`} OR
+      p.status ILIKE ${`%${query}%`}
+    )
+  ORDER BY d.name
+  LIMIT ${ITEMS_PER_PAGE} OFFSET ${(currentPage - 1) * ITEMS_PER_PAGE};
+
+`;
+
+    return donors;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch donors.');
+  }
+}
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
@@ -139,6 +218,36 @@ export async function fetchInvoicesPages(query: string) {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch total number of invoices.');
+  }
+}
+export async function fetchDonorsPages(query: string) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+FROM donors d
+JOIN donor_payments p ON d.id = p.donor_id
+WHERE p.status = 'Due'
+  AND p.payment_date = (
+    SELECT MIN(payment_date)
+    FROM donor_payments
+    WHERE donor_id = d.id AND status = 'Due'
+  )
+  AND (
+    d.name ILIKE ${`%${query}%`} OR
+    d.phone ILIKE ${`%${query}%`} OR
+    d.address ILIKE ${`%${query}%`} OR
+    d.payment_plan::text ILIKE ${`%${query}%`} OR
+    p.payment_date::text ILIKE ${`%${query}%`} OR
+    p.payment_amount::text ILIKE ${`%${query}%`} OR
+    p.status ILIKE ${`%${query}%`}
+  );
+
+  `;
+
+    const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of donors.');
   }
 }
 

@@ -54,6 +54,18 @@ export type InvoicesTable = {
   amount: number;
   status: 'pending' | 'paid';
 };
+export type DonorsTable = {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  payment_plan: number;
+  payment_date: string;
+  payment_amount: number;
+  status: 'Due' | 'Paid';
+};
+
+
 
 export type CustomersTableType = {
   id: string;
