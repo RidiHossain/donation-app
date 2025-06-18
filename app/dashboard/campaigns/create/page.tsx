@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-export default function CreateDonor() {
+export default function CreateCampaign() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -14,25 +14,29 @@ export default function CreateDonor() {
     const formData = new FormData(e.currentTarget);
     const data = {
       name: formData.get('name')?.toString().trim() || '',
-      phone: formData.get('phone')?.toString().trim() || '',
-      email: formData.get('email')?.toString().trim() || '',
-      address: formData.get('address')?.toString().trim() || '',
+      amount_to_raise: Number(formData.get('amount_to_raise')),
+      status: formData.get('status')?.toString().trim() || '',
     };
 
-    if (!data.name || !data.phone || !data.email || !data.address) {
+    if (!data.name || !data.amount_to_raise || !data.status) {
       alert('Please fill in all required fields.');
       setLoading(false);
       return;
     }
 
+    if (isNaN(data.amount_to_raise) || data.amount_to_raise <= 0) {
+      alert('Please enter a valid amount to raise.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch('/seed/createDonor', {
+      const res = await fetch('/seed/createCampaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
-      // Make sure to check res.ok first
       if (!res.ok) {
         const error = await res.json();
         alert('Error: ' + (error.error || 'Something went wrong.'));
@@ -40,12 +44,10 @@ export default function CreateDonor() {
         return;
       }
 
-      // Optional: parse to trigger catch on malformed response
       const result = await res.json();
       console.log(result.message);
-
-      alert('🎉 Donor added successfully!');
-      router.push('/dashboard/donors'); // 👈 Your redirect
+      alert('🎉 Campaign created successfully!');
+      router.push('/dashboard/campaigns');
     } catch (error) {
       console.error(error);
       alert('Network error. Please try again later.');
@@ -60,12 +62,35 @@ export default function CreateDonor() {
       className="max-w-xl mx-auto mt-10 space-y-6 p-6 rounded-md bg-white shadow"
       noValidate
     >
-      <h2 className="text-2xl font-bold text-gray-800">Create New Donor</h2>
+      <h2 className="text-2xl font-bold text-gray-800">Create New Campaign</h2>
 
-      <input name="name" placeholder="Name" required className="w-full border px-3 py-2 rounded-md" />
-      <input name="phone" placeholder="Phone" required className="w-full border px-3 py-2 rounded-md" />
-      <input name="email" type="email" placeholder="Email" required className="w-full border px-3 py-2 rounded-md" />
-      <input name="address" placeholder="Address" required className="w-full border px-3 py-2 rounded-md" />
+      <input
+        name="name"
+        placeholder="Campaign Name"
+        required
+        className="w-full border px-3 py-2 rounded-md"
+      />
+
+      <input
+        name="amount_to_raise"
+        type="number"
+        min="1"
+        placeholder="Amount to Raise"
+        required
+        className="w-full border px-3 py-2 rounded-md"
+      />
+
+      <select
+        name="status"
+        required
+        className="w-full border px-3 py-2 rounded-md"
+      >
+        <option value="">Select Status</option>
+        <option value="running">Running</option>
+        <option value="completed">Completed</option>
+        <option value="paused">Paused</option>
+        <option value="in_future">In Future</option>
+      </select>
 
       <button
         type="submit"

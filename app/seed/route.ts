@@ -1,36 +1,37 @@
 import postgres from 'postgres';
-import { donors } from '../lib/placeholder-data';
+import { campaigns } from '../lib/placeholder-data';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
-async function seedDonors() {
+async function seedCampaigns() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
+  // Create campaigns table
   await sql`
-    CREATE TABLE IF NOT EXISTS donors (
+    CREATE TABLE IF NOT EXISTS campaigns (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      phone TEXT NOT NULL,
-      address TEXT NOT NULL,
-      payment_plan INT NOT NULL CHECK (payment_plan IN (1, 2, 3))
+      amount_to_raise NUMERIC NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'paused', 'in_future'))
     );
   `;
 
-  const insertedDonors = await Promise.all(
-    donors.map((donor) => sql`
-      INSERT INTO donors (id, name, phone, address, payment_plan)
-      VALUES (${donor.id}, ${donor.name}, ${donor.phone}, ${donor.address}, ${donor.payment_plan})
+  // Insert mock campaigns
+  const insertedCampaigns = await Promise.all(
+    campaigns.map((campaign) => sql`
+      INSERT INTO campaigns (id, name, amount_to_raise, status)
+      VALUES (${campaign.id}, ${campaign.name}, ${campaign.amount_to_raise}, ${campaign.status})
       ON CONFLICT (id) DO NOTHING;
-    `),
+    `)
   );
 
-  return insertedDonors;
+  return insertedCampaigns;
 }
 
 export async function GET() {
   try {
-    await seedDonors();
-    return Response.json({ message: 'Donors seeded successfully' });
+    await seedCampaigns();
+    return Response.json({ message: 'Campaigns seeded successfully' });
   } catch (error) {
     return Response.json({ error }, { status: 500 });
   }

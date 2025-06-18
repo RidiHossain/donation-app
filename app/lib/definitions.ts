@@ -59,12 +59,15 @@ export type DonorsTable = {
   name: string;
   phone: string;
   address: string;
-  payment_plan: number;
-  payment_date: string;
-  payment_amount: number;
-  status: 'Due' | 'Paid';
+  email: string
 };
 
+export type CampaignTable = {
+  id: string;
+  name: string;
+  amount_to_raise: number;
+  status: 'running' | 'completed' | 'paused' | 'in_future';
+};
 
 
 export type CustomersTableType = {

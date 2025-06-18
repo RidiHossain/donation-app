@@ -7,8 +7,10 @@ import {
   LatestInvoiceRaw,
   Revenue,
   DonorsTable,
+  CampaignTable
 } from './definitions';
 import { formatCurrency } from './utils';
+import { campaigns } from './placeholder-data';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
@@ -17,25 +19,13 @@ export type DonorWithDuePayment = {
   name: string;
   phone: string;
   address: string;
-  payment_date: string;
-  payment_amount: number;
-  status: string;
 };
 
 export async function fetchDonorsWithMostRecentDue() {
   try {
     const data = await sql<DonorWithDuePayment[]>`
-      SELECT d.id AS donor_id, d.name, d.phone, d.address,
-             p.payment_date, p.payment_amount, p.status
-      FROM donors d
-      JOIN LATERAL (
-        SELECT payment_date, payment_amount, status
-        FROM donor_payments
-        WHERE donor_id = d.id AND status = 'Due'
-        ORDER BY payment_date DESC
-        LIMIT 1
-      ) p ON true
-      ORDER BY p.payment_date DESC;
+      SELECT d.id AS donor_id, d.name, d.phone, d.address
+      FROM donors d;
     `;
 
     return data;
@@ -133,27 +123,13 @@ export async function fetchFilteredDonors(
          d.name,
          d.phone,
          d.address,
-         d.payment_plan,
-         p.payment_date,
-         p.payment_amount,
-         p.status
+         d.email
   FROM donors d
-  JOIN donor_payments p ON d.id = p.donor_id
-  WHERE p.status = 'Due'
-    AND p.payment_date = (
-      SELECT MIN(payment_date)
-      FROM donor_payments
-      WHERE donor_id = d.id AND status = 'Due'
-    )
-    AND (
+  WHERE 
       d.name ILIKE ${`%${query}%`} OR
       d.phone ILIKE ${`%${query}%`} OR
       d.address ILIKE ${`%${query}%`} OR
-      d.payment_plan::text ILIKE ${`%${query}%`} OR
-      p.payment_date::text ILIKE ${`%${query}%`} OR
-      p.payment_amount::text ILIKE ${`%${query}%`} OR
-      p.status ILIKE ${`%${query}%`}
-    )
+      d.email ILIKE ${`%${query}%`}
   ORDER BY d.name
   LIMIT ${ITEMS_PER_PAGE} OFFSET ${(currentPage - 1) * ITEMS_PER_PAGE};
 
@@ -165,6 +141,37 @@ export async function fetchFilteredDonors(
     throw new Error('Failed to fetch donors.');
   }
 }
+
+export async function fetchFilteredCampaigns(
+  query: string,
+  currentPage: number,
+) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+  const search = `%${query}%`;
+
+  try {
+    const campaigns = await sql<CampaignTable[]>`
+      SELECT c.id,
+             c.name,
+             c.amount_to_raise,
+             c.status
+      FROM campaigns c
+      WHERE 
+        c.id::text ILIKE ${search} OR
+        c.name ILIKE ${search} OR
+        c.amount_to_raise::text ILIKE ${search} OR
+        c.status ILIKE ${search}
+      ORDER BY c.name
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset};
+    `;
+
+    return campaigns;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch campaigns.');
+  }
+}
+
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
@@ -224,23 +231,13 @@ export async function fetchDonorsPages(query: string) {
   try {
     const data = await sql`SELECT COUNT(*)
 FROM donors d
-JOIN donor_payments p ON d.id = p.donor_id
-WHERE p.status = 'Due'
-  AND p.payment_date = (
-    SELECT MIN(payment_date)
-    FROM donor_payments
-    WHERE donor_id = d.id AND status = 'Due'
-  )
-  AND (
+
+WHERE 
     d.name ILIKE ${`%${query}%`} OR
     d.phone ILIKE ${`%${query}%`} OR
     d.address ILIKE ${`%${query}%`} OR
-    d.payment_plan::text ILIKE ${`%${query}%`} OR
-    p.payment_date::text ILIKE ${`%${query}%`} OR
-    p.payment_amount::text ILIKE ${`%${query}%`} OR
-    p.status ILIKE ${`%${query}%`}
-  );
-
+    d.email ILIKE ${`%${query}%`}
+  ;
   `;
 
     const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
@@ -248,6 +245,27 @@ WHERE p.status = 'Due'
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch total number of donors.');
+  }
+}
+export async function fetchCampaignPages(query: string) {
+  const search = `%${query}%`;
+
+  try {
+    const data = await sql`
+      SELECT COUNT(*)
+      FROM campaigns c
+      WHERE 
+        c.name ILIKE ${search}
+        OR c.amount_to_raise::text ILIKE ${search}
+        OR c.status ILIKE ${search}
+        OR c.id::text ILIKE ${search}
+    `;
+
+    const count = Number(data[0].count);
+    return Math.ceil(count / ITEMS_PER_PAGE);
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch campaigns.');
   }
 }
 
