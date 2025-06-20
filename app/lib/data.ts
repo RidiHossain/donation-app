@@ -7,7 +7,9 @@ import {
   LatestInvoiceRaw,
   Revenue,
   DonorsTable,
-  CampaignTable
+  CampaignTable,
+  PledgeTable,
+  CampaignDonor
 } from './definitions';
 import { formatCurrency } from './utils';
 import { campaigns } from './placeholder-data';
@@ -20,6 +22,35 @@ export type DonorWithDuePayment = {
   phone: string;
   address: string;
 };
+
+
+export async function fetchCampaignSpecificDonors(campaignName: string): Promise<CampaignDonor[]> {
+  try {
+    const data = await sql<{
+      name: string;
+      email: string;
+      amount: number;
+    }[]>`
+      SELECT donors.name, donors.email, pledges.amount
+      FROM pledges
+      JOIN donors ON pledges.donor_id = donors.id
+      JOIN campaigns ON pledges.campaign_id = campaigns.id
+      WHERE LOWER(TRIM(campaigns.name)) = LOWER(TRIM(${campaignName}))
+
+    `;
+
+    const formatted = data.map((donor) => ({
+      name: donor.name,
+      email: donor.email,
+      amount: formatCurrency(donor.amount),
+    }));
+
+    return formatted;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch donors for the campaign.');
+  }
+}
 
 export async function fetchDonorsWithMostRecentDue() {
   try {
@@ -108,6 +139,45 @@ export async function fetchCardData() {
     throw new Error('Failed to fetch card data.');
   }
 }
+export async function fetchCampaignSummary(campaignName: string) {
+  try {
+    const result = await sql<{
+      amount_to_raise: number;
+      total_pledged: number;
+      donor_count: number;
+    }[]>`
+      SELECT
+        c.amount_to_raise,
+        COALESCE(SUM(p.amount), 0) AS total_pledged,
+        COUNT(DISTINCT p.donor_id) AS donor_count
+      FROM campaigns c
+      LEFT JOIN pledges p ON c.id = p.campaign_id
+      WHERE c.name = ${campaignName}
+      GROUP BY c.amount_to_raise;
+    `;
+
+    if (result.length === 0) {
+      throw new Error('Campaign not found');
+    }
+
+    const { amount_to_raise, total_pledged, donor_count } = result[0];
+
+    // 🔧 Mock total_raised as 70% of pledged amount
+    const total_raised = total_pledged * 0.7;
+
+    return {
+      campaign_name: campaignName,
+      amount_to_raise,
+      total_pledged,
+      total_raised: Math.round(total_raised * 100) / 100,
+      donor_count,
+    };
+  } catch (error) {
+    console.error('Error fetching campaign summary:', error);
+    throw new Error('Failed to fetch campaign summary');
+  }
+}
+
 
 const ITEMS_PER_PAGE = 6;
 
@@ -204,6 +274,67 @@ export async function fetchFilteredInvoices(
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch invoices.');
+  }
+}
+
+export async function fetchFilteredPledges(
+  query: string,
+  currentPage: number
+) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const pledges = await sql<PledgeTable[]>`
+      SELECT
+        pledges.id,
+        pledges.amount,
+        pledges.start_date,
+        pledges.end_date,
+        pledges.payment_type,
+        donors.name AS donor_name,
+        campaigns.name AS campaign_name
+      FROM pledges
+      JOIN donors ON pledges.donor_id = donors.id
+      JOIN campaigns ON pledges.campaign_id = campaigns.id
+      WHERE
+        donors.name ILIKE ${`%${query}%`} OR
+        campaigns.name ILIKE ${`%${query}%`} OR
+        pledges.amount::text ILIKE ${`%${query}%`} OR
+        pledges.payment_type ILIKE ${`%${query}%`} OR
+        pledges.start_date::text ILIKE ${`%${query}%`} OR
+        pledges.end_date::text ILIKE ${`%${query}%`}
+      ORDER BY pledges.start_date DESC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+
+    return pledges;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch pledges.');
+  }
+}
+// app/lib/data.ts or similar file
+export async function fetchPledgePages(query: string) {
+  try {
+    const result = await sql`
+      SELECT COUNT(*) AS count
+      FROM pledges
+      JOIN donors ON pledges.donor_id = donors.id
+      JOIN campaigns ON pledges.campaign_id = campaigns.id
+      WHERE
+        donors.name ILIKE ${`%${query}%`} OR
+        campaigns.name ILIKE ${`%${query}%`} OR
+        pledges.amount::text ILIKE ${`%${query}%`} OR
+        pledges.payment_type ILIKE ${`%${query}%`} OR
+        pledges.start_date::text ILIKE ${`%${query}%`} OR
+        pledges.end_date::text ILIKE ${`%${query}%`}
+    `;
+
+    const totalCount = Number(result[0]?.count || 0);
+    return Math.ceil(totalCount / ITEMS_PER_PAGE);
+  } catch (error) {
+    console.error('Database Error (fetchPledgesPages):', error);
+    throw new Error('Failed to count pledges.');
   }
 }
 

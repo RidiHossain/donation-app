@@ -1,37 +1,44 @@
 import postgres from 'postgres';
-import { campaigns } from '../lib/placeholder-data';
+import { pledges } from '../lib/placeholder-data';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
-async function seedCampaigns() {
+async function seedPledges() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
-  // Create campaigns table
   await sql`
-    CREATE TABLE IF NOT EXISTS campaigns (
+    CREATE TABLE IF NOT EXISTS pledges (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      amount_to_raise NUMERIC NOT NULL,
-      status TEXT NOT NULL CHECK (status IN ('running', 'completed', 'paused', 'in_future'))
+      donor_id UUID NOT NULL,
+      campaign_id UUID NOT NULL,
+      amount NUMERIC NOT NULL CHECK (amount > 0),
+      payment_type TEXT NOT NULL CHECK (payment_type IN ('one_time', 'monthly')),
+      start_date DATE NOT NULL,
+      end_date DATE
     );
   `;
 
-  // Insert mock campaigns
-  const insertedCampaigns = await Promise.all(
-    campaigns.map((campaign) => sql`
-      INSERT INTO campaigns (id, name, amount_to_raise, status)
-      VALUES (${campaign.id}, ${campaign.name}, ${campaign.amount_to_raise}, ${campaign.status})
-      ON CONFLICT (id) DO NOTHING;
+  const insertedPledges = await Promise.all(
+    pledges.map((pledge) => sql`
+      INSERT INTO pledges (donor_id, campaign_id, amount, payment_type, start_date, end_date)
+      VALUES (
+        ${pledge.donor_id},
+        ${pledge.campaign_id},
+        ${pledge.amount},
+        ${pledge.payment_type},
+        ${pledge.start_date},
+        ${pledge.end_date}
+      );
     `)
   );
 
-  return insertedCampaigns;
+  return insertedPledges;
 }
 
 export async function GET() {
   try {
-    await seedCampaigns();
-    return Response.json({ message: 'Campaigns seeded successfully' });
+    await seedPledges();
+    return Response.json({ message: 'Pledges seeded successfully' });
   } catch (error) {
     return Response.json({ error }, { status: 500 });
   }

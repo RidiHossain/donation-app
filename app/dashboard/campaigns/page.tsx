@@ -17,6 +17,7 @@ export default async function Page(props: {
   const query = searchParams?.query || '';
   const currentPage = Number(searchParams?.page) || 1;
    const totalPages = await fetchCampaignPages(query);
+   
  
   return (
     <div className="w-full">

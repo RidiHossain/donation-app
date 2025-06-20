@@ -7,6 +7,89 @@ const users = [
     email: 'user@nextmail.com',
     password: '123456',
   },
+];// app/lib/placeholder-data.ts
+
+const pledges = [
+  {
+    donor_id: '00000000-0000-0000-0000-000000000000',
+    campaign_id: '0115dac1-ae68-4766-841d-31deec3730f4',
+    amount: 100,
+    payment_type: 'one_time',
+    start_date: '2024-01-01',
+    end_date: '2024-01-01',
+  },
+  {
+    donor_id: '11111111-1111-1111-1111-111111111111',
+    campaign_id: '11111111-1111-1111-1111-111111111111',
+    amount: 200,
+    payment_type: 'monthly',
+    start_date: '2024-03-01',
+    end_date: '2024-08-01',
+  },
+  {
+    donor_id: '22222222-2222-2222-2222-222222222222',
+    campaign_id: '22222222-2222-2222-2222-222222222222',
+    amount: 150,
+    payment_type: 'monthly',
+    start_date: '2024-02-01',
+    end_date: '2024-07-01',
+  },
+  {
+    donor_id: '33333333-3333-3333-3333-333333333333',
+    campaign_id: '33333333-3333-3333-3333-333333333333',
+    amount: 300,
+    payment_type: 'one_time',
+    start_date: '2024-05-10',
+    end_date: '2024-05-10',
+  },
+  {
+    donor_id: '44444444-4444-4444-4444-444444444444',
+    campaign_id: 'a2a7cc4c-68a2-4537-b417-53e24cb4192f',
+    amount: 50,
+    payment_type: 'monthly',
+    start_date: '2024-04-15',
+    end_date: '2024-10-15',
+  },
+  {
+    donor_id: '55555555-5555-5555-5555-555555555555',
+    campaign_id: '0115dac1-ae68-4766-841d-31deec3730f4',
+    amount: 500,
+    payment_type: 'one_time',
+    start_date: '2024-06-01',
+    end_date: '2024-06-01',
+  },
+  {
+    donor_id: '66666666-6666-6666-6666-666666666666',
+    campaign_id: '11111111-1111-1111-1111-111111111111',
+    amount: 250,
+    payment_type: 'monthly',
+    start_date: '2024-03-15',
+    end_date: '2024-09-15',
+  },
+  {
+    donor_id: '77777777-7777-7777-7777-777777777777',
+    campaign_id: '22222222-2222-2222-2222-222222222222',
+    amount: 400,
+    payment_type: 'one_time',
+    start_date: '2024-07-01',
+    end_date: '2024-07-01',
+  },
+  {
+    donor_id: '88888888-8888-8888-8888-888888888888',
+    campaign_id: '33333333-3333-3333-3333-333333333333',
+    amount: 100,
+    payment_type: 'monthly',
+    start_date: '2024-08-01',
+    end_date: '2025-01-01',
+  },
+  {
+    donor_id: '99999999-9999-9999-9999-999999999999',
+    campaign_id: 'a2a7cc4c-68a2-4537-b417-53e24cb4192f',
+    amount: 350,
+    payment_type: 'one_time',
+    start_date: '2024-09-15',
+    end_date: '2024-09-15',
+  },
 ];
 
 const customers = [
@@ -288,4 +371,4 @@ const campaigns = [
   },
 ];
 
-export { users, customers, invoices, revenue, donors, donorPayments, campaigns };
+export { users, customers, invoices, revenue, donors, donorPayments, campaigns, pledges };

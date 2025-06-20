@@ -62,11 +62,26 @@ export type DonorsTable = {
   email: string
 };
 
+export type CampaignDonor = {
+  name: string;
+  email: string;
+  amount: string;
+};
+
 export type CampaignTable = {
   id: string;
   name: string;
   amount_to_raise: number;
   status: 'running' | 'completed' | 'paused' | 'in_future';
+};
+export type PledgeTable = {
+  id: string;
+  donor_name: string;
+  campaign_name: string;
+  amount: number;
+  payment_type: 'onetime' | 'monthly';
+  start_date: string; // or Date if you’re handling Date objects
+  end_date: string;   // or Date if you’re handling Date objects
 };
 
 
