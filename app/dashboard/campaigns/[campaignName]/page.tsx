@@ -1,11 +1,18 @@
-import { fetchCampaignSummary, fetchCampaignSpecificDonors } from '@/app/lib/data';
-import { formatCurrency } from '@/app/lib/utils';
+import { fetchCampaignSummary } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
+import { formatCurrency } from '@/app/lib/utils';
 import { Card } from '@/app/ui/dashboard/cards';
 import { lusitana } from '@/app/ui/fonts';
 import CampaignDonorsTable from '@/app/ui/campaigns/CampaignDonorsTable';
+import { fetchCampaignSpecificDonors } from '@/app/lib/data';
 
-export default async function Page({ params }: { params: { campaignName: string } }) {
+type Props = {
+  params: {
+    campaignName: string;
+  };
+};
+
+export default async function Page({ params }: Props) {
   const decodedName = decodeURIComponent(params.campaignName);
 
   let summary;
@@ -15,7 +22,7 @@ export default async function Page({ params }: { params: { campaignName: string 
     return notFound(); // Shows 404 if campaign not found
   }
 
-  const donors = await fetchCampaignSpecificDonors(decodedName); // ✅ decode used here
+  const donors = await fetchCampaignSpecificDonors(decodedName);
 
   return (
     <main>
@@ -33,7 +40,7 @@ export default async function Page({ params }: { params: { campaignName: string 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
         <CampaignDonorsTable donors={donors} />
       </div>
-  
+
       <div className="pt-6">
         <a
           href="/dashboard/campaigns"
