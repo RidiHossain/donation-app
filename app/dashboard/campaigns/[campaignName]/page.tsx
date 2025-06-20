@@ -1,19 +1,18 @@
-import { fetchCampaignSummary } from '@/app/lib/data';
-import { notFound } from 'next/navigation';
+import { fetchCampaignSummary, fetchCampaignSpecificDonors } from '@/app/lib/data';
 import { formatCurrency } from '@/app/lib/utils';
+import { notFound } from 'next/navigation';
 import { Card } from '@/app/ui/dashboard/cards';
 import { lusitana } from '@/app/ui/fonts';
 import CampaignDonorsTable from '@/app/ui/campaigns/CampaignDonorsTable';
-import { fetchCampaignSpecificDonors } from '@/app/lib/data';
 
-type Props = {
-  params: {
-    campaignName: string;
-  };
+type PageProps = {
+  params: Promise<{ campaignName: string }>;
 };
 
-export default async function Page({ params }: Props) {
-  const decodedName = decodeURIComponent(params.campaignName);
+export default async function Page({ params }: PageProps) {
+  // Await the params Promise before using
+  const resolvedParams = await params;
+  const decodedName = decodeURIComponent(resolvedParams.campaignName);
 
   let summary;
   try {
@@ -42,10 +41,7 @@ export default async function Page({ params }: Props) {
       </div>
 
       <div className="pt-6">
-        <a
-          href="/dashboard/campaigns"
-          className="text-blue-600 hover:underline text-sm"
-        >
+        <a href="/dashboard/campaigns" className="text-blue-600 hover:underline text-sm">
           ← Back to Campaigns
         </a>
       </div>
