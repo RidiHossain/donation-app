@@ -26,7 +26,7 @@ const links = [
   { name: 'Donors', href: '/dashboard/donors', icon: UserGroupIcon },
   
   { name: 'Pledges', href: '/dashboard/pledges', icon: DocumentDuplicateIcon },
-  { name: 'Payments', href: '/dashboard/payments', icon: CreditCardIcon },
+  
 ];
 
 export default function NavLinks() {
