@@ -36,9 +36,10 @@ export default async function Page({ params }: PageProps) {
         <Card title="Total Donors" value={summary.donor_count} type="customers" />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
+      <div className="mt-6">
         <CampaignDonorsTable donors={donors} />
       </div>
+
 
       <div className="pt-6">
         <a href="/dashboard/campaigns" className="text-blue-600 hover:underline text-sm">

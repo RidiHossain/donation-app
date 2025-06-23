@@ -13,10 +13,10 @@ export function CreateCampaign() {
   );
 }
 
-export function UpdateDonors({ id }: { id: string }) {
+export function UpdateCampaigns({ id }: { id: string }) {
   return (
     <Link
-      href="/dashboard/donors"
+      href="/dashboard/campaigns"
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />
@@ -24,7 +24,7 @@ export function UpdateDonors({ id }: { id: string }) {
   );
 }
 
-export function DeleteDonor({ id }: { id: string }) {
+export function DeleteCampaign({ id }: { id: string }) {
   return (
     <>
       <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">

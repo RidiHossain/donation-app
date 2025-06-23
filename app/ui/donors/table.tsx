@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
+import { UpdateDonors, DeleteDonor } from '@/app/ui/donors/buttons';
 import DonationStatus from '@/app/ui/donors/status';
 import { formatDateToLocal, formatCurrency } from '@/app/lib/utils';
 import { fetchFilteredDonors } from '@/app/lib/data';
@@ -34,8 +34,8 @@ export default async function InvoicesTable({
                 <div className="flex w-full items-center justify-between pt-4">
                   
                   <div className="flex justify-end gap-2">
-                    <UpdateInvoice id={donor.id} />
-                    <DeleteInvoice id={donor.id} />
+                    <UpdateDonors id={donor.id} />
+                    <DeleteDonor id={donor.id} />
                   </div>
                 </div>
               </div>
@@ -83,8 +83,8 @@ export default async function InvoicesTable({
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      <UpdateInvoice id={donor.id} />
-                      <DeleteInvoice id={donor.id} />
+                      <UpdateDonors id={donor.id} />
+                      <DeleteDonor id={donor.id} />
                     </div>
                   </td>
                 </tr>
