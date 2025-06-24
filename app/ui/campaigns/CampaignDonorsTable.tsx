@@ -44,6 +44,32 @@ export default function CampaignDonorsTable({
     setDonorsWithMock(enriched);
   }, [donors]);
 
+  // ✅ Notify handler
+  const handleNotify = async (donor: ExtendedDonor) => {
+  try {
+    const res = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: donor.email,
+        name: donor.name, // optional
+        status: donor.status, // optional
+        totalPledged: donor.totalPledged, // optional
+        totalPaid: donor.totalPaid, // optional
+      }),
+    });
+
+    if (res.ok) {
+      alert(`Notification sent to ${donor.email}`);
+    } else {
+      alert(`Failed to send notification to ${donor.email}`);
+    }
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    alert('Something went wrong.');
+  }
+};
+
   return (
     <div className="flex w-full flex-col md:col-span-4 overflow-x-auto">
       <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
@@ -72,15 +98,15 @@ export default function CampaignDonorsTable({
               )}
             >
               <div className="font-medium flex items-center gap-2">
-  <Image
-    src={donor.image_url || '/customers/default-avatar.png'}
-    alt={`${donor.name}'s profile picture`}
-    className="rounded-full"
-    width={32}
-    height={32}
-  />
-  {donor.name}
-</div>
+                <Image
+                  src={donor.image_url || '/customers/default-avatar.png'}
+                  alt={`${donor.name}'s profile picture`}
+                  className="rounded-full"
+                  width={32}
+                  height={32}
+                />
+                {donor.name}
+              </div>
 
               <div>${donor.totalPledged.toLocaleString()}</div>
               <div>${donor.totalPaid.toLocaleString()}</div>
@@ -105,6 +131,7 @@ export default function CampaignDonorsTable({
                       ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
                       : 'bg-blue-50 text-blue-500 hover:bg-blue-100'
                   )}
+                  onClick={() => handleNotify(donor)}
                 >
                   Notify
                 </button>
