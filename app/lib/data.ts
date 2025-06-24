@@ -342,6 +342,32 @@ export async function fetchFilteredPledges(
     throw new Error('Failed to fetch pledges.');
   }
 }
+
+export async function fetchDonorById(id: string) {
+  const result = await sql`
+    SELECT id, name, image_url, email, phone, address
+    FROM donors
+    WHERE id = ${id}
+  `;
+  return result[0];
+}
+
+// Get pledges made by a donor
+export async function fetchPledgesByDonorId(donorId: string) {
+  const result = await sql`
+    SELECT pledges.id, pledges.amount, pledges.start_date, campaigns.name AS campaign_name
+    FROM pledges
+    JOIN campaigns ON pledges.campaign_id = campaigns.id
+    WHERE pledges.donor_id = ${donorId}
+    ORDER BY pledges.start_date DESC
+  `;
+  
+  return result.map(p => ({
+    ...p,
+    date: p.start_date, // Normalize to `date` if needed in UI
+  }));
+}
+
 // app/lib/data.ts or similar file
 export async function fetchPledgePages(query: string) {
   try {
