@@ -38,6 +38,13 @@ export type LatestInvoice = {
   email: string;
   amount: string;
 };
+export type LatestDonor = {
+  id: string;
+  name: string;
+  email: string;
+  image_url: string | null;
+  donationAmount: string;
+};
 
 // The database returns a number for amount, but we later format it to a string with the formatCurrency function
 export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
@@ -59,13 +66,22 @@ export type DonorsTable = {
   name: string;
   phone: string;
   address: string;
-  email: string
+  email: string;
+  image_url: string | null;
+};
+export type Donor = {
+  id: string;
+  name: string;
+  email: string;
+  image_url: string | null;
 };
 
 export type CampaignDonor = {
+  id: string;
   name: string;
   email: string;
-  amount: string;
+  amount: string; // already formatted
+  image_url:string;
 };
 
 export type CampaignTable = {
@@ -79,6 +95,7 @@ export type PledgeTable = {
   donor_name: string;
   campaign_name: string;
   amount: number;
+  image_url: string;
   payment_type: 'onetime' | 'monthly';
   start_date: string; // or Date if you’re handling Date objects
   end_date: string;   // or Date if you’re handling Date objects

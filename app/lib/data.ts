@@ -9,7 +9,8 @@ import {
   DonorsTable,
   CampaignTable,
   PledgeTable,
-  CampaignDonor
+  CampaignDonor, 
+  Donor
 } from './definitions';
 import { formatCurrency } from './utils';
 import { campaigns } from './placeholder-data';
@@ -24,25 +25,30 @@ export type DonorWithDuePayment = {
 };
 
 
-export async function fetchCampaignSpecificDonors(campaignName: string): Promise<CampaignDonor[]> {
+export async function fetchCampaignSpecificDonors(
+  campaignName: string
+): Promise<CampaignDonor[]> {
   try {
     const data = await sql<{
+      id: string;
       name: string;
       email: string;
       amount: number;
+      image_url:string
     }[]>`
-      SELECT donors.name, donors.email, pledges.amount
+      SELECT donors.id, donors.name, donors.email, pledges.amount, donors.image_url
       FROM pledges
       JOIN donors ON pledges.donor_id = donors.id
       JOIN campaigns ON pledges.campaign_id = campaigns.id
       WHERE LOWER(TRIM(campaigns.name)) = LOWER(TRIM(${campaignName}))
-
     `;
 
     const formatted = data.map((donor) => ({
+      id: donor.id,
       name: donor.name,
       email: donor.email,
       amount: formatCurrency(donor.amount),
+      image_url: donor.image_url
     }));
 
     return formatted;
@@ -51,7 +57,6 @@ export async function fetchCampaignSpecificDonors(campaignName: string): Promise
     throw new Error('Failed to fetch donors for the campaign.');
   }
 }
-
 export async function fetchDonorsWithMostRecentDue() {
   try {
     const data = await sql<DonorWithDuePayment[]>`
@@ -82,6 +87,28 @@ export async function fetchRevenue() {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch revenue data.');
+  }
+}
+
+
+export async function fetchLatestDonors() {
+  try {
+    const data = await sql<Donor[]>`
+      SELECT id, name, email, image_url
+      FROM donors
+      ORDER BY name DESC
+      LIMIT 5
+    `;
+
+    const donorsWithMock = data.map((donor) => ({
+      ...donor,
+      donationAmount: formatCurrency(Math.floor(Math.random() * 500) + 50), // $50–$550
+    }));
+
+    return donorsWithMock;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch latest donors.');
   }
 }
 
@@ -190,6 +217,7 @@ export async function fetchFilteredDonors(
   try {
     const donors = await sql<DonorsTable[]>`
   SELECT d.id,
+        d.image_url,
          d.name,
          d.phone,
          d.address,
@@ -292,6 +320,7 @@ export async function fetchFilteredPledges(
         pledges.end_date,
         pledges.payment_type,
         donors.name AS donor_name,
+        donors.image_url AS image_url,
         campaigns.name AS campaign_name
       FROM pledges
       JOIN donors ON pledges.donor_id = donors.id

@@ -28,7 +28,16 @@ export default async function InvoicesTable({
                 <div className="flex items-center justify-between border-b pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      <p>{pledge.donor_name}</p>
+                      
+                      <p>
+                        <Image
+                          src={pledge.image_url || '/customers/default-avatar.png'}
+                          alt={`${pledge.donor_name}'s profile picture`}
+                          className="mr-4 rounded-full"
+                          width={32}
+                          height={32}
+                        />
+                        {pledge.donor_name}</p>
                     </div>
                     <p className="text-sm text-gray-500">{pledge.campaign_name}</p>
                     <p className="text-sm text-gray-500">{formatCurrency(pledge.amount)}</p>
@@ -71,7 +80,15 @@ export default async function InvoicesTable({
                   [&:last-child>td:last-child]:rounded-br-lg"
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex items-center gap-3">{pledge.donor_name}</div>
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={pledge.image_url || '/customers/default-avatar.png'}
+                        alt={`${pledge.donor_name}'s profile picture`}
+                        className="mr-4 rounded-full"
+                        width={32}
+                        height={32}
+                      />
+                      {pledge.donor_name}</div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {pledge.campaign_name}

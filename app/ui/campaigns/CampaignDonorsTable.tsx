@@ -5,6 +5,7 @@ import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { lusitana } from '@/app/ui/fonts';
 import { CampaignDonor } from '@/app/lib/definitions';
+import Image from 'next/image';
 
 type ExtendedDonor = CampaignDonor & {
   totalPledged: number;
@@ -70,7 +71,17 @@ export default function CampaignDonorsTable({
                 { 'border-t': i !== 0 }
               )}
             >
-              <div className="font-medium">{donor.name}</div>
+              <div className="font-medium flex items-center gap-2">
+  <Image
+    src={donor.image_url || '/customers/default-avatar.png'}
+    alt={`${donor.name}'s profile picture`}
+    className="rounded-full"
+    width={32}
+    height={32}
+  />
+  {donor.name}
+</div>
+
               <div>${donor.totalPledged.toLocaleString()}</div>
               <div>${donor.totalPaid.toLocaleString()}</div>
               <div>{donor.nextPaymentDate}</div>
