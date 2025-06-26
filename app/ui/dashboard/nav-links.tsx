@@ -24,7 +24,7 @@ const links = [
   { name: 'Pledges', href: '/dashboard/pledges', icon: DocumentDuplicateIcon },
   {
     name: 'Payments',
-    href: '/dashboard/invoices',
+    href: '/dashboard/payments',
     icon: CreditCardIcon,
   },
   

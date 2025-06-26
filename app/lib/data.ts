@@ -10,12 +10,34 @@ import {
   CampaignTable,
   PledgeTable,
   CampaignDonor, 
-  Donor
+  Donor,
+  PaymentsTable
 } from './definitions';
 import { formatCurrency } from './utils';
 import { campaigns } from './placeholder-data';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+
+
+export async function fetchAllPaymentsWithDetails() {
+  const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+
+  const results = await sql`
+    SELECT 
+      payments.id,
+      payments.amount,
+      payments.date,
+      donors.name as donor_name,
+      donors.image_url as donor_image,
+      campaigns.name as campaign_name
+    FROM payments
+    JOIN donors ON payments.donor_id = donors.id
+    JOIN campaigns ON payments.campaign_id = campaigns.id
+    ORDER BY payments.date DESC
+  `;
+
+  return results;
+}
 
 export type DonorWithDuePayment = {
   donor_id: string;
@@ -304,6 +326,40 @@ export async function fetchFilteredInvoices(
     throw new Error('Failed to fetch invoices.');
   }
 }
+export async function fetchFilteredPayments(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const payments = await sql<PaymentsTable[]>`
+      SELECT
+        payments.id,
+        payments.amount,
+        payments.date,
+        payments.receipt_url, -- ✅ Add this line
+        donors.name AS donor_name,
+        donors.email AS donor_email,
+        donors.image_url AS donor_image_url,
+        campaigns.name AS campaign_name
+      FROM payments
+      JOIN donors ON payments.donor_id = donors.id
+      JOIN campaigns ON payments.campaign_id = campaigns.id
+      WHERE
+        donors.name ILIKE ${`%${query}%`} OR
+        donors.email ILIKE ${`%${query}%`} OR
+        campaigns.name ILIKE ${`%${query}%`} OR
+        payments.amount::text ILIKE ${`%${query}%`} OR
+        payments.date::text ILIKE ${`%${query}%`}
+      ORDER BY payments.date DESC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+
+    return payments;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch payments.');
+  }
+}
+
 
 export async function fetchFilteredPledges(
   query: string,
@@ -392,7 +448,27 @@ export async function fetchPledgePages(query: string) {
     throw new Error('Failed to count pledges.');
   }
 }
+export async function fetchPaymentsPages(query: string) {
+  try {
+    const data = await sql`
+      SELECT COUNT(*)
+      FROM payments
+      JOIN donors ON payments.donor_id = donors.id
+      JOIN campaigns ON payments.campaign_id = campaigns.id
+      WHERE
+        donors.name ILIKE ${`%${query}%`} OR
+        campaigns.name ILIKE ${`%${query}%`} OR
+        payments.amount::text ILIKE ${`%${query}%`} OR
+        payments.date::text ILIKE ${`%${query}%`}
+    `;
 
+    const totalPages = Math.ceil(Number(data[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of payments.');
+  }
+}
 export async function fetchInvoicesPages(query: string) {
   try {
     const data = await sql`SELECT COUNT(*)

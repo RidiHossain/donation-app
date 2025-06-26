@@ -1,45 +1,42 @@
 import postgres from 'postgres';
-import { pledges } from '../lib/placeholder-data';
+import { payments } from '../lib/placeholder-data';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
-async function seedPledges() {
+async function seedPayments() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
   await sql`
-    CREATE TABLE IF NOT EXISTS pledges (
+    CREATE TABLE IF NOT EXISTS payments (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       donor_id UUID NOT NULL,
       campaign_id UUID NOT NULL,
       amount NUMERIC NOT NULL CHECK (amount > 0),
-      payment_type TEXT NOT NULL CHECK (payment_type IN ('one_time', 'monthly')),
-      start_date DATE NOT NULL,
-      end_date DATE
+      date DATE NOT NULL
     );
   `;
 
-  const insertedPledges = await Promise.all(
-    pledges.map((pledge) => sql`
-      INSERT INTO pledges (donor_id, campaign_id, amount, payment_type, start_date, end_date)
+  const insertedPayments = await Promise.all(
+    payments.map((payment) => sql`
+      INSERT INTO payments (donor_id, campaign_id, amount, date)
       VALUES (
-        ${pledge.donor_id},
-        ${pledge.campaign_id},
-        ${pledge.amount},
-        ${pledge.payment_type},
-        ${pledge.start_date},
-        ${pledge.end_date}
+        ${payment.donor_id},
+        ${payment.campaign_id},
+        ${payment.amount},
+        ${payment.date}
       );
     `)
   );
 
-  return insertedPledges;
+  return insertedPayments;
 }
 
 export async function GET() {
   try {
-    await seedPledges();
-    return Response.json({ message: 'Pledges seeded successfully' });
+    await seedPayments();
+    return Response.json({ message: 'Payments seeded successfully' });
   } catch (error) {
-    return Response.json({ error }, { status: 500 });
+    console.error('Seeding error:', error);
+    return Response.json({ error: 'Seeding failed' }, { status: 500 });
   }
 }

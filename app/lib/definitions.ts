@@ -9,6 +9,17 @@ export type User = {
   password: string;
 };
 
+export type PaymentsTable = {
+  id: string;
+  donor_name: string;
+  donor_email: string;
+  donor_image_url?: string;
+  campaign_name: string;
+  amount: number;
+  date: string;
+  receipt_url?: string; // ✅ Add this line
+};
+
 export type Customer = {
   id: string;
   name: string;

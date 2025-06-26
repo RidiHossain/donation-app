@@ -8,6 +8,70 @@ const users = [
     password: '123456',
   },
 ];// app/lib/placeholder-data.ts
+const payments = [
+  {
+    donor_id: '00000000-0000-0000-0000-000000000000',
+    campaign_id: '0115dac1-ae68-4766-841d-31deec3730f4',
+    amount: 120.5,
+    date: '2024-06-01',
+  },
+  {
+    donor_id: '11111111-1111-1111-1111-111111111111',
+    campaign_id: '11111111-1111-1111-1111-111111111111',
+    amount: 250,
+    date: '2024-06-05',
+  },
+  {
+    donor_id: '22222222-2222-2222-2222-222222222222',
+    campaign_id: '22222222-2222-2222-2222-222222222222',
+    amount: 300,
+    date: '2024-06-10',
+  },
+  {
+    donor_id: '2636f474-e2c0-4a83-93f2-8a76ed0afc41',
+    campaign_id: '33333333-3333-3333-3333-333333333333',
+    amount: 80,
+    date: '2024-06-15',
+  },
+  {
+    donor_id: '3262710a-2b3e-4ca3-9098-29fe04f9c93c',
+    campaign_id: 'a2a7cc4c-68a2-4537-b417-53e24cb4192f',
+    amount: 500,
+    date: '2024-06-18',
+  },
+  {
+    donor_id: '565205be-5870-4838-80c0-5e3385194d42',
+    campaign_id: 'b36f9a22-a7e5-453e-a003-529ce83d04cc',
+    amount: 75.25,
+    date: '2024-06-20',
+  },
+  {
+    donor_id: '881e0f28-daea-4a7a-8416-608073449456',
+    campaign_id: '0115dac1-ae68-4766-841d-31deec3730f4',
+    amount: 60,
+    date: '2024-06-25',
+  },
+  {
+    donor_id: 'ab04d390-6254-4957-bc14-8c4015cc81ee',
+    campaign_id: '11111111-1111-1111-1111-111111111111',
+    amount: 145,
+    date: '2024-06-28',
+  },
+  {
+    donor_id: 'f8410bcc-2c96-4d37-a2c7-02207779327e',
+    campaign_id: '22222222-2222-2222-2222-222222222222',
+    amount: 110,
+    date: '2024-07-01',
+  },
+  {
+    donor_id: '00000000-0000-0000-0000-000000000000',
+    campaign_id: '33333333-3333-3333-3333-333333333333',
+    amount: 90,
+    date: '2024-07-05',
+  },
+];
+
+
 
 const pledges = [
   {
@@ -371,4 +435,4 @@ const campaigns = [
   },
 ];
 
-export { users, customers, invoices, revenue, donors, donorPayments, campaigns, pledges };
+export { users, customers, invoices, revenue, donors, donorPayments, campaigns, pledges, payments };
