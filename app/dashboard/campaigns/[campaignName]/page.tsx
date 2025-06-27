@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Card } from '@/app/ui/dashboard/cards';
 import { lusitana } from '@/app/ui/fonts';
 import CampaignDonorsTable from '@/app/ui/campaigns/CampaignDonorsTable';
+import CampaignProgressCard from '@/app/ui/campaigns/CampaignProgressCard';
 
 type PageProps = {
   params: Promise<{ campaignName: string }>;
@@ -35,6 +36,11 @@ export default async function Page({ params }: PageProps) {
         <Card title="Raised" value={formatCurrency(summary.total_raised)} type="collected" />
         <Card title="Total Donors" value={summary.donor_count} type="customers" />
       </div>
+      <CampaignProgressCard
+        totalAmount={summary.amount_to_raise}
+        totalPledged={summary.total_pledged}
+        totalCollected={summary.total_raised}
+/>
 
       <div className="mt-6">
         <CampaignDonorsTable donors={donors} />
